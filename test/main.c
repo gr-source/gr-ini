@@ -3,7 +3,7 @@
 #include <ctype.h>
 #include <dlfcn.h>
 
-#include "config.h"
+#include <gr-ini/config.h>
 
 
 static void OnClick()

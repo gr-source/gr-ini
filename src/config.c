@@ -1,4 +1,4 @@
-#include "config.h"
+#include "gr-ini/config.h"
 
 #include <stddef.h>
 #include <stdint.h>
