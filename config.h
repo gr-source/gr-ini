@@ -33,6 +33,8 @@ struct Section
     char *key;
     char *value;
 
+    char *name;
+
     KeyValue *keyValue;
     uint32_t count;
 
@@ -57,15 +59,21 @@ struct Section *config_create_sub_section(struct Section *section, const char *n
 
 struct Section *config_find_section(const Config *config, const char *key);
 
-struct Section *config_get_section(const Config *config, const char *key);
-
 void config_set_string(struct Section *section, const char *key, const char *value);
+
+const char *config_get_string(const struct Section *section, const char *key);
 
 void config_set_float(struct Section *section, const char *key, float value);
 
+float config_get_float(const struct Section *section, const char *key);
+
 void config_set_int(struct Section *section, const char *key, int value);
 
+int config_get_int(const struct Section *section, const char *key);
+
 void config_set_bool(struct Section *section, const char *key, bool value);
+
+bool config_get_bool(const struct Section *section, const char *key);
 
 void config_save(const char *file, const Config *config);
 

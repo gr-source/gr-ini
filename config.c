@@ -53,6 +53,11 @@ void config_foreach_free(struct Section *section)
         free(section->value);
     }
 
+    if (section->name != NULL)
+    {
+        free(section->name);
+    }
+
     if (section->subsection != NULL)
     {
         free(section->subsection);
@@ -94,6 +99,8 @@ struct Section *config_create_section(Config *config, const char *name, const ch
     section->subcount = 0;
 
     section->key   = strdup(name);
+    section->name  = strdup(name);
+
     section->value = NULL;
 
     section->keyValue = NULL;
@@ -127,6 +134,8 @@ struct Section *config_create_sub_section(struct Section *section, const char *n
     subsection->subcount = 0;
 
     subsection->key   = strdup(new_key);
+    subsection->name  = strdup(name);
+
     subsection->value = NULL;
 
     if (value != NULL)
@@ -193,6 +202,18 @@ void config_set_string(struct Section *section, const char *key, const char *val
     ++section->count;
 }
 
+const char *config_get_string(const struct Section *section, const char *key)
+{
+    for (uint32_t i=0;i<section->count;i++)
+    {
+        KeyValue *keyValue = &section->keyValue[i];
+        if (strcmp(keyValue->name, key) == 0)
+        {
+            return keyValue->value;
+        }
+    }
+    return NULL;
+}
 
 void config_set_float(struct Section *section, const char *key, float value)
 {
@@ -214,6 +235,18 @@ void config_set_float(struct Section *section, const char *key, float value)
     ++section->count;
 }
 
+float config_get_float(const struct Section *section, const char *key)
+{
+    for (uint32_t i=0;i<section->count;i++)
+    {
+        KeyValue *keyValue = &section->keyValue[i];
+        if (strcmp(keyValue->name, key) == 0)
+        {
+            return atof(keyValue->value);
+        }
+    }
+    return 0.0f;
+}
 
 void config_set_int(struct Section *section, const char *key, int value)
 {
@@ -235,6 +268,18 @@ void config_set_int(struct Section *section, const char *key, int value)
     ++section->count;
 }
 
+int config_get_int(const struct Section *section, const char *key)
+{
+    for (uint32_t i=0;i<section->count;i++)
+    {
+        KeyValue *keyValue = &section->keyValue[i];
+        if (strcmp(keyValue->name, key) == 0)
+        {
+            return atoi(keyValue->value);
+        }
+    }
+    return 0;
+}
 
 void config_set_bool(struct Section *section, const char *key, bool value)
 {
@@ -253,6 +298,18 @@ void config_set_bool(struct Section *section, const char *key, bool value)
     ++section->count;
 }
 
+bool config_get_bool(const struct Section *section, const char *key)
+{
+    for (uint32_t i=0;i<section->count;i++)
+    {
+        KeyValue *keyValue = &section->keyValue[i];
+        if (strcmp(keyValue->name, key) == 0)
+        {
+            return strcmp(keyValue->value, "true") == 0 ? true : false;
+        }
+    }
+    return false;
+}
 ConfigStep_ config_foreach_write(ConfigType_ type, void *data, void *fp)
 {
     switch (type) {

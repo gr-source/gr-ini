@@ -16,9 +16,9 @@ ConfigStep_ foreach(ConfigType_ type, void *data, void *argv)
     switch (type) {
         case ConfigType_Section: {
             struct Section *section = (struct Section *)data;
-            if (strcmp(section->key, "MenuBar") == 0)
+            if (strcmp(section->name, "MenuBar") == 0)
             {
-                printf("MenBar found name: %s\n", section->value);
+                printf("MenuBar found name: %s\n", section->value);
 
                 return ConfigStep_Recuse;
             }
@@ -27,7 +27,7 @@ ConfigStep_ foreach(ConfigType_ type, void *data, void *argv)
         case ConfigType_Subsection: {
             struct Section *section = (struct Section *)data;
 
-            printf("Subsection: %s-%s\n", section->key, section->value);
+            printf("Subsection: %s-%s\n", section->name, section->value);
             /*if ()*/
             break;
         }
@@ -105,15 +105,24 @@ int main()
 
         config_set_string(section, "name", "My First Game");
         config_set_string(section, "path", "/home/felypy/ssa");
-    }
-    
+        config_set_bool(section, "runner", true);
+        config_set_int(section, "max_count", 89);
+        config_set_float(section, "timeout", 1000.24f);
+    } 
 
     config_save("config.ini", config);
     */
-
+    
     config_load("config.ini", config);
 
-    config_foreach(config, (ConfigFunc) &foreach, NULL);
+    struct Section *section = config_find_section(config, "Game");
+
+    printf("path: %s, runner: %s, max: %d, time: %f\n",
+            config_get_string(section, "path"),
+           (config_get_bool(section, "runner") ? "true" : false),
+           config_get_int(section, "max_count"), config_get_float(section, "timeout"));
+
+    /*config_foreach(config, (ConfigFunc) &foreach, NULL);*/
     /*config_print(config);*/
 
     config_release(config);
