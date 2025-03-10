@@ -1,5 +1,5 @@
-project(gr-test LANGUAGES C)
+project(gr-test LANGUAGES C CXX)
 
-add_executable(${PROJECT_NAME} main.c)
+add_executable(${PROJECT_NAME} main.cpp)
 
 

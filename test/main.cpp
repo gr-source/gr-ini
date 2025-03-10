@@ -1,31 +1,26 @@
-#include <stdio.h>
+#include <iostream>
+
 #include <string.h>
-#include <ctype.h>
-#include <dlfcn.h>
 
+extern "C" {
 #include <gr-ini/config.h>
-
-
-static void OnClick()
-{
-    printf("OKKKKKKKKKKKK\n");
 }
 
-ConfigStep_ foreach(ConfigType_ type, void *data, void *argv)
+gConfigStep_ foreach(gConfigType_ type, void *data, void *argv)
 {
     switch (type) {
-        case ConfigType_Section: {
-            struct Section *section = (struct Section *)data;
+        case gConfigType_Section: {
+            struct gSection *section = (struct gSection *)data;
             if (strcmp(section->name, "MenuBar") == 0)
             {
                 printf("MenuBar found name: %s\n", section->value);
 
-                return ConfigStep_Recuse;
+                return gConfigStep_Recuse;
             }
             break;
         }
-        case ConfigType_Subsection: {
-            struct Section *section = (struct Section *)data;
+        case gConfigType_Subsection: {
+            struct gSection *section = (struct gSection *)data;
 
             printf("Subsection: %s-%s\n", section->name, section->value);
             /*if ()*/
@@ -34,12 +29,12 @@ ConfigStep_ foreach(ConfigType_ type, void *data, void *argv)
         default:
             break;
     }
-    return ConfigStep_Continue;
+    return gConfigStep_Continue;
 }
 
 int main()
 {
-    Config *config = config_Create();
+    gConfig *config = config_Create();
     if (config == NULL)
     {
         printf("Fail to create config.\n");
@@ -115,12 +110,13 @@ int main()
     
     config_load("config.ini", config);
 
-    struct Section *section = config_find_section(config, "Game");
+    struct gSection *section = config_find_section(config, "Game");
 
-    printf("path: %s, runner: %s, max: %d, time: %f\n",
-            config_get_string(section, "path"),
-           (config_get_bool(section, "runner") ? "true" : false),
-           config_get_int(section, "max_count"), config_get_float(section, "timeout"));
+    std::cout << "Result" << std::endl;
+    /*printf("path: %s, runner: %s, max: %d, time: %f\n",*/
+    /*        config_get_string(section, "path"),*/
+    /*       (config_get_bool(section, "runner") ? "true" : false),*/
+    /*       config_get_int(section, "max_count"), config_get_float(section, "timeout"));*/
 
     /*config_foreach(config, (ConfigFunc) &foreach, NULL);*/
     /*config_print(config);*/

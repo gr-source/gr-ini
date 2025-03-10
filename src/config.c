@@ -7,11 +7,11 @@
 #include <string.h>
 #include <errno.h>
 
-static struct Section *oldsection = NULL;
+static struct gSection *oldsection = NULL;
 
-Config *config_Create()
+gConfig *config_Create()
 {
-    Config *config = (Config *)malloc(sizeof(struct Section));
+    gConfig *config = (gConfig *)malloc(sizeof(gConfig));
     if (config == NULL)
     {
         return NULL;
@@ -22,7 +22,7 @@ Config *config_Create()
     return config;
 }
 
-void config_foreach_free(struct Section *section)
+void config_foreach_free(struct gSection *section)
 {
     for (uint32_t i=0;i<section->subcount;i++)
     {
@@ -31,7 +31,7 @@ void config_foreach_free(struct Section *section)
 
     for (uint32_t i=0;i<section->count;i++)
     {
-        KeyValue *keyValue = &section->keyValue[i];
+        gKeyValue *keyValue = &section->keyValue[i];
 
         if (keyValue->name != NULL)
         {
@@ -69,7 +69,7 @@ void config_foreach_free(struct Section *section)
     }
 }
 
-void config_release(Config *config)
+void config_release(gConfig *config)
 {
     for (uint32_t i=0;i<config->count;i++)
     {
@@ -84,17 +84,17 @@ void config_release(Config *config)
     free(config);
 }
 
-struct Section *config_create_section(Config *config, const char *name, const char *value)
+struct gSection *config_create_section(gConfig *config, const char *name, const char *value)
 {
     if (config->section == NULL)
     {
-        config->section = (struct Section *)malloc(sizeof(struct Section) * (config->count + 1));
+        config->section = (struct gSection *)malloc(sizeof(struct gSection) * (config->count + 1));
     } else
     {
-        config->section = (struct Section *)realloc(config->section, sizeof(struct Section) * (config->count + 1));
+        config->section = (struct gSection *)realloc(config->section, sizeof(struct gSection) * (config->count + 1));
     }
 
-    struct Section *section = config->section + config->count;
+    struct gSection *section = config->section + config->count;
     section->subsection = NULL;
     section->subcount = 0;
 
@@ -114,20 +114,20 @@ struct Section *config_create_section(Config *config, const char *name, const ch
     return section;
 }
 
-struct Section *config_create_sub_section(struct Section *section, const char *name, const char *value)
+struct gSection *config_create_sub_section(struct gSection *section, const char *name, const char *value)
 {
     char new_key[512] = {0};
     sprintf(new_key, "%s.%s", section->key, name);
 
     if (section->subsection == NULL)
     {
-        section->subsection = (struct Section *)malloc(sizeof(struct Section) * (section->subcount + 1));
+        section->subsection = (struct gSection *)malloc(sizeof(struct gSection) * (section->subcount + 1));
     }
     else {
-        section->subsection = (struct Section *)realloc(section->subsection, sizeof(struct Section) * (section->subcount + 1));
+        section->subsection = (struct gSection *)realloc(section->subsection, sizeof(struct gSection) * (section->subcount + 1));
     }
 
-    struct Section *subsection = section->subsection + section->subcount;
+    struct gSection *subsection = section->subsection + section->subcount;
     ++section->subcount;
 
     subsection->subsection = NULL;
@@ -147,14 +147,14 @@ struct Section *config_create_sub_section(struct Section *section, const char *n
     return subsection;
 }
 
-struct Section *config_foreach_section(struct Section *section, const char *key)
+struct gSection *config_foreach_section(struct gSection *section, const char *key)
 {
     if (strcmp(section->key, key) == 0)
     {
         return section;
     }
 
-    struct Section *result = NULL;
+    struct gSection *result = NULL;
     for (uint32_t i=0;i<section->subcount;i++)
     {
         result = config_foreach_section(&section->subsection[i], key);
@@ -166,9 +166,9 @@ struct Section *config_foreach_section(struct Section *section, const char *key)
     return result;
 }
 
-struct Section *config_find_section(const Config *config, const char *key)
+struct gSection *config_find_section(const gConfig *config, const char *key)
 {
-    struct Section *section = NULL;
+    struct gSection *section = NULL;
     for (uint32_t i=0;i<config->count;i++)
     {
         section = config_foreach_section(&config->section[i], key);
@@ -182,31 +182,31 @@ struct Section *config_find_section(const Config *config, const char *key)
     return NULL;
 }
 
-void config_set_string(struct Section *section, const char *key, const char *value)
+void config_set_string(struct gSection *section, const char *key, const char *value)
 {
     if (section->keyValue == NULL)
     {
-        section->keyValue = (KeyValue *)malloc(sizeof(KeyValue) * (section->count + 1));
+        section->keyValue = (gKeyValue *)malloc(sizeof(gKeyValue) * (section->count + 1));
     } else
     {
-        section->keyValue = (KeyValue *)realloc(section->keyValue, sizeof(KeyValue) * (section->count + 1));
+        section->keyValue = (gKeyValue *)realloc(section->keyValue, sizeof(gKeyValue) * (section->count + 1));
     }
 
     char typed[1024] = {0};
     sprintf(typed, "\"%s\"", value);
 
-    KeyValue *keyValue = section->keyValue + section->count;
+    gKeyValue *keyValue = section->keyValue + section->count;
     keyValue->value = strdup(typed);
     keyValue->name = strdup(key);
 
     ++section->count;
 }
 
-const char *config_get_string(const struct Section *section, const char *key)
+const char *config_get_string(const struct gSection *section, const char *key)
 {
     for (uint32_t i=0;i<section->count;i++)
     {
-        KeyValue *keyValue = &section->keyValue[i];
+        gKeyValue *keyValue = &section->keyValue[i];
         if (strcmp(keyValue->name, key) == 0)
         {
             return keyValue->value;
@@ -215,31 +215,31 @@ const char *config_get_string(const struct Section *section, const char *key)
     return NULL;
 }
 
-void config_set_float(struct Section *section, const char *key, float value)
+void config_set_float(struct gSection *section, const char *key, float value)
 {
     if (section->keyValue == NULL)
     {
-        section->keyValue = (KeyValue *)malloc(sizeof(KeyValue) * (section->count + 1));
+        section->keyValue = (gKeyValue *)malloc(sizeof(gKeyValue) * (section->count + 1));
     } else
     {
-        section->keyValue = (KeyValue *)realloc(section->keyValue, sizeof(KeyValue) * (section->count + 1));
+        section->keyValue = (gKeyValue *)realloc(section->keyValue, sizeof(gKeyValue) * (section->count + 1));
     }
 
     char typed[1024] = {0};
     sprintf(typed, "%f", value);
 
-    KeyValue *keyValue = section->keyValue + section->count;
+    gKeyValue *keyValue = section->keyValue + section->count;
     keyValue->value = strdup(typed);
     keyValue->name = strdup(key);
 
     ++section->count;
 }
 
-float config_get_float(const struct Section *section, const char *key)
+float config_get_float(const struct gSection *section, const char *key)
 {
     for (uint32_t i=0;i<section->count;i++)
     {
-        KeyValue *keyValue = &section->keyValue[i];
+        gKeyValue *keyValue = &section->keyValue[i];
         if (strcmp(keyValue->name, key) == 0)
         {
             return atof(keyValue->value);
@@ -248,31 +248,31 @@ float config_get_float(const struct Section *section, const char *key)
     return 0.0f;
 }
 
-void config_set_int(struct Section *section, const char *key, int value)
+void config_set_int(struct gSection *section, const char *key, int value)
 {
     if (section->keyValue == NULL)
     {
-        section->keyValue = (KeyValue *)malloc(sizeof(KeyValue) * (section->count + 1));
+        section->keyValue = (gKeyValue *)malloc(sizeof(gKeyValue) * (section->count + 1));
     } else
     {
-        section->keyValue = (KeyValue *)realloc(section->keyValue, sizeof(KeyValue) * (section->count + 1));
+        section->keyValue = (gKeyValue *)realloc(section->keyValue, sizeof(gKeyValue) * (section->count + 1));
     }
 
     char typed[1024] = {0};
     sprintf(typed, "%d", value);
 
-    KeyValue *keyValue = section->keyValue + section->count;
+    gKeyValue *keyValue = section->keyValue + section->count;
     keyValue->value = strdup(typed);
     keyValue->name = strdup(key);
 
     ++section->count;
 }
 
-int config_get_int(const struct Section *section, const char *key)
+int config_get_int(const struct gSection *section, const char *key)
 {
     for (uint32_t i=0;i<section->count;i++)
     {
-        KeyValue *keyValue = &section->keyValue[i];
+        gKeyValue *keyValue = &section->keyValue[i];
         if (strcmp(keyValue->name, key) == 0)
         {
             return atoi(keyValue->value);
@@ -281,28 +281,28 @@ int config_get_int(const struct Section *section, const char *key)
     return 0;
 }
 
-void config_set_bool(struct Section *section, const char *key, bool value)
+void config_set_bool(struct gSection *section, const char *key, bool value)
 {
     if (section->keyValue == NULL)
     {
-        section->keyValue = (KeyValue *)malloc(sizeof(KeyValue) * (section->count + 1));
+        section->keyValue = (gKeyValue *)malloc(sizeof(gKeyValue) * (section->count + 1));
     } else
     {
-        section->keyValue = (KeyValue *)realloc(section->keyValue, sizeof(KeyValue) * (section->count + 1));
+        section->keyValue = (gKeyValue *)realloc(section->keyValue, sizeof(gKeyValue) * (section->count + 1));
     }
 
-    KeyValue *keyValue = section->keyValue + section->count;
+    gKeyValue *keyValue = section->keyValue + section->count;
     keyValue->value = strdup(value ? "true" : "false");
     keyValue->name = strdup(key);
 
     ++section->count;
 }
 
-bool config_get_bool(const struct Section *section, const char *key)
+bool config_get_bool(const struct gSection *section, const char *key)
 {
     for (uint32_t i=0;i<section->count;i++)
     {
-        KeyValue *keyValue = &section->keyValue[i];
+        gKeyValue *keyValue = &section->keyValue[i];
         if (strcmp(keyValue->name, key) == 0)
         {
             return strcmp(keyValue->value, "true") == 0 ? true : false;
@@ -310,11 +310,11 @@ bool config_get_bool(const struct Section *section, const char *key)
     }
     return false;
 }
-ConfigStep_ config_foreach_write(ConfigType_ type, void *data, void *fp)
+gConfigStep_ config_foreach_write(gConfigType_ type, void *data, void *fp)
 {
     switch (type) {
-        case ConfigType_Section: {
-            struct Section *section = (struct Section *)data;
+        case gConfigType_Section: {
+            struct gSection *section = (struct gSection *)data;
             
             char buff[1024] = {0};
             if (section->value != NULL)
@@ -334,8 +334,8 @@ ConfigStep_ config_foreach_write(ConfigType_ type, void *data, void *fp)
             }
             break;
         }
-        case ConfigType_Subsection: {
-            struct Section *section = (struct Section *)data;
+        case gConfigType_Subsection: {
+            struct gSection *section = (struct gSection *)data;
             
             char buff[1024] = {0};
             if (section->value != NULL)
@@ -355,8 +355,8 @@ ConfigStep_ config_foreach_write(ConfigType_ type, void *data, void *fp)
             }
             break;
         }
-        case ConfigType_KeyValue: {
-            KeyValue *keyValue = (KeyValue *)data;
+        case gConfigType_KeyValue: {
+            gKeyValue *keyValue = (gKeyValue *)data;
 
             char buff[1024] = {0};
             sprintf(buff, "%s=%s\n", keyValue->name, keyValue->value);
@@ -372,10 +372,10 @@ ConfigStep_ config_foreach_write(ConfigType_ type, void *data, void *fp)
         default:
             break;
     }
-    return ConfigStep_Recuse;
+    return gConfigStep_Recuse;
 }
 
-void config_save(const char *file, const Config *config)
+void config_save(const char *file, const gConfig *config)
 {
     FILE *fp = fopen(file, "w");
     if (fp == NULL)
@@ -398,7 +398,7 @@ void removeChar(char *str, char garbage) {
     *dst = '\0';
 }
 
-void config_load(const char *file, Config *config)
+void config_load(const char *file, gConfig *config)
 {
     FILE *fp = fopen(file, "r");
     if (fp == NULL)
@@ -409,8 +409,8 @@ void config_load(const char *file, Config *config)
     char *line = NULL;
     size_t len = 0;
 
-    struct Section *section = NULL;
-    struct Section *subsection = NULL;
+    struct gSection *section = NULL;
+    struct gSection *subsection = NULL;
 
     while (getline(&line, &len, fp) > 0)
     {
@@ -484,25 +484,25 @@ void config_load(const char *file, Config *config)
 }
 
 
-bool config_for_earch(struct Section *section, struct Section *parent, ConfigFunc func, void *argv)
+bool config_for_earch(struct gSection *section, struct gSection *parent, ConfigFunc func, void *argv)
 {
-    ConfigStep_ step = func(parent == NULL ? ConfigType_Section : ConfigType_Subsection, (void *)section, argv);
-    if (step == ConfigStep_Break)
+    gConfigStep_ step = func(parent == NULL ? gConfigType_Section : gConfigType_Subsection, (void *)section, argv);
+    if (step == gConfigStep_Break)
     {
         return false;
     }
 
-    if (step == ConfigStep_Continue)
+    if (step == gConfigStep_Continue)
     {
         return true;
     }
 
-    if (step == ConfigStep_Recuse)
+    if (step == gConfigStep_Recuse)
     {
         for (uint32_t i=0;i<section->count;i++)
         {
-            step = func(ConfigType_KeyValue, (void *) &section->keyValue[i], argv);
-            if (step == ConfigStep_Break)
+            step = func(gConfigType_KeyValue, (void *) &section->keyValue[i], argv);
+            if (step == gConfigStep_Break)
             {
                 return false;
             }
@@ -520,7 +520,7 @@ bool config_for_earch(struct Section *section, struct Section *parent, ConfigFun
     return true;
 }
 
-void config_foreach(const Config *config, ConfigFunc func, void *argv)
+void config_foreach(const gConfig *config, ConfigFunc func, void *argv)
 {
     for (uint32_t i=0;i<config->count;i++)
     {
@@ -531,34 +531,34 @@ void config_foreach(const Config *config, ConfigFunc func, void *argv)
     }
 }
 
-ConfigStep_ forearch(ConfigType_ type, void *data, void *argv)
+gConfigStep_ forearch(gConfigType_ type, void *data, void *argv)
 {
-    if (type == ConfigType_Section)
+    if (type == gConfigType_Section)
     {
-        struct Section *section = (struct Section *)data;
+        struct gSection *section = (struct gSection *)data;
 
         printf("[ %s %s ]\n", section->key, section->value);
-        return ConfigStep_Recuse;
+        return gConfigStep_Recuse;
     }
 
-    if (type == ConfigType_Subsection)
+    if (type == gConfigType_Subsection)
     {
-        struct Section *section = (struct Section *)data;
+        struct gSection *section = (struct gSection *)data;
 
         printf("\t[ %s %s ]\n", section->key, section->value);
-        return ConfigStep_Recuse;
+        return gConfigStep_Recuse;
     }
 
-    if (type == ConfigType_KeyValue)
+    if (type == gConfigType_KeyValue)
     {
-        KeyValue *keyValue = (KeyValue *)data;
+        gKeyValue *keyValue = (gKeyValue *)data;
 
         printf("\t\t%s=%s\n", keyValue->name, keyValue->value);
     }
-    return ConfigStep_Continue;
+    return gConfigStep_Continue;
 }
 
-void config_print(Config *config)
+void config_print(gConfig *config)
 {
     config_foreach(config, (ConfigFunc) &forearch, NULL);
 }
